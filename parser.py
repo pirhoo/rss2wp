@@ -75,6 +75,6 @@ if __name__ == "__main__":
         if args.force or not has_duplicate(post.title, client=wp):
             # Create the post on wordpress
             idx =  wp.call(NewPost(post))
-            print "Post %s created." % idx
+            print "Post `%s` created." % post.title
         else:
             print "Post `%s` already exists." % post.title
