@@ -5,6 +5,8 @@ import argparse
 import feedparser
 import os
 
+__all__ = ["Client"]
+
 def entry_to_wppost(entry):
     post             = WordPressPost()
     # Convert entry values to Post value
@@ -31,7 +33,7 @@ def entry_to_wppost(entry):
     """
     return post
 
-def has_duplicate(post):
+def has_duplicate(post, client):
     # Get all the post from wordpress
     if not hasattr(has_duplicate, "posts"):
         has_duplicate.posts = []
@@ -62,7 +64,7 @@ if __name__ == "__main__":
     # Read cmd arguments
     parser = argparse.ArgumentParser()
     parser.add_argument('target', help="Feed file path or URL (e.g: ./file.rss, http://exemple.org/rss)")
-    parser.add_argument('--force', dest='force', help="Should we force the create of the post (without checkout for duplicates).", action='store_true')
+    parser.add_argument('--force', dest='force', help="Force the parser to create the posts (without checking duplicates).", action='store_true')
     parser.set_defaults(force=False)
     args = parser.parse_args()
     # Parse feed file
@@ -70,7 +72,7 @@ if __name__ == "__main__":
     # Convert every feed entry into a wp post
     for entry in document.entries:
         post = entry_to_wppost(entry)
-        if args.force or not has_duplicate(post):
+        if args.force or not has_duplicate(post, client=wp):
             # Create the post on wordpress
             idx =  wp.call(NewPost(post))
             print "Post %s created." % idx
