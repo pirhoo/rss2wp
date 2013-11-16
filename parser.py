@@ -33,7 +33,7 @@ def entry_to_wppost(entry):
     """
     return post
 
-def has_duplicate(post, client):
+def has_duplicate(title, client):
     # Get all the post from wordpress
     if not hasattr(has_duplicate, "posts"):
         has_duplicate.posts = []
@@ -57,7 +57,7 @@ if __name__ == "__main__":
         wp_pwd  = os.environ["WP_PWD"]
         wp_url  = os.environ["WP_URL"]
     except KeyError as e:
-        print "Please set an environement variable `%s`." % e
+        print "Please set the environement variable `%s`." % e
         exit()
     # Create wp client
     wp = Client(wp_url, wp_user, wp_pwd)
@@ -72,7 +72,9 @@ if __name__ == "__main__":
     # Convert every feed entry into a wp post
     for entry in document.entries:
         post = entry_to_wppost(entry)
-        if args.force or not has_duplicate(post, client=wp):
+        if args.force or not has_duplicate(post.title, client=wp):
             # Create the post on wordpress
             idx =  wp.call(NewPost(post))
             print "Post %s created." % idx
+        else:
+            print "Post `%s` already exists." % post.title
