@@ -77,4 +77,4 @@ if __name__ == "__main__":
             idx =  wp.call(NewPost(post))
             print "Post `%s` created." % post.title
         else:
-            print "Post `%s` already exists." % post.title
+            print "x Post `%s` already exists." % post.title
