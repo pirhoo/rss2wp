@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from colors import red, green
 from wordpress_xmlrpc import Client, WordPressPost, WordPressTerm
 from wordpress_xmlrpc.methods.posts import GetPosts, NewPost
 import argparse
@@ -75,6 +76,6 @@ if __name__ == "__main__":
         if args.force or not has_duplicate(post.title, client=wp):
             # Create the post on wordpress
             idx =  wp.call(NewPost(post))
-            print "Post `%s` created." % post.title
+            print green(u" ✔ Post `%s` created." % post.title)
         else:
-            print "x Post `%s` already exists." % post.title
+            print red(u" ✖ Post `%s` already exists." % post.title)
