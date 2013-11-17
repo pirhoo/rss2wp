@@ -21,7 +21,7 @@ git clone git@github.com:pirhoo/rss2wp.git
 make install
 ```
 ### 4. Configure
-Create the following environement variables to configure you're client in command line:
+Create the following environement variables to configure your client in command line:
 
 * **WP_URL**: url of your Wordpress xmlrpc endpoint
 * **WP_USER**: username to use to connect to Wordpress
