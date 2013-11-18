@@ -1,38 +1,56 @@
 # -*- coding: utf-8 -*-
 from colors import red, green
-from wordpress_xmlrpc import Client, WordPressPost, WordPressTerm
+from wordpress_xmlrpc import Client, WordPressPost, WordPressUser, WordPressTerm
 from wordpress_xmlrpc.methods.posts import GetPosts, NewPost
+from wordpress_xmlrpc.methods.users import GetUsers
 import argparse
 import feedparser
 import os
 
 __all__ = ["Client"]
 
-def entry_to_wppost(entry):
+def entry_to_wppost(entry, client):
     post             = WordPressPost()
     # Convert entry values to Post value
-    post.user        = entry.author
+    post.user        = get_author_by_display_name(entry.author, client)
     post.date        = entry.published_parsed
     post.post_status = "draft"
     post.title       = entry.title
     post.content     = entry.content[0].value
     post.excerpt     = entry.summary
     post.link        = entry.link
-    """
-    # Create a categorie with the first tag item
-    category = WordPressTerm()
+    # There is some given tags
     if len(entry.tags):
-        category.group    = 'category'
-        category.name     = entry.tags[0].term
-        post.terms        = [ category ]
-        for tag in entry.tags[1:]:
-            term          = WordPressTerm()
-            term.group    = 'tag'
-            term.name     = tag.term
-            # Add the term
-            post.terms.append(term)
-    """
+        entry.tags = [t.term for t in entry.tags]
+        # Add category (with the first tag)
+        post.terms_names = {
+            'category': entry.tags[0:1],
+            'post_tag': [],
+        }
+        # Add tags
+        if len(entry.tags) > 1: post.terms_names['post_tag'] = entry.tags[1:]
     return post
+
+def get_author_by_display_name(display_name, client):
+    # Get all the post from wordpress
+    if not hasattr(get_author_by_display_name, "authors"):
+        get_author_by_display_name.authors = []
+        offset = 0
+        limit  = 100
+        while True:
+            page = wp.call(GetUsers({'number': limit, 'offset': offset}))
+            # no more posts returned
+            if len(page) == 0: break
+            # stacks pages
+            get_author_by_display_name.authors += page
+            offset = offset + limit
+    # Use author cache version
+    authors = get_author_by_display_name.authors
+    author  = [a for a in authors if a.display_name == display_name]
+    return author[0].id if len(author) else None
+
+
+
 
 def has_duplicate(title, client):
     # Get all the post from wordpress
@@ -72,7 +90,7 @@ if __name__ == "__main__":
     document = feedparser.parse(args.target)
     # Convert every feed entry into a wp post
     for entry in document.entries:
-        post = entry_to_wppost(entry)
+        post = entry_to_wppost(entry, client=wp)
         if args.force or not has_duplicate(post.title, client=wp):
             # Create the post on wordpress
             idx =  wp.call(NewPost(post))
